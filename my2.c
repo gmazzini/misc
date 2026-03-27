@@ -5,9 +5,9 @@
 
 void loadcty(){
   FILE *f;
-  char riga[100000],q[200000],*dd[20],*p,*ff,base[256],name[256],cont[256],prefix[256],tmp[1024],esc[512],*a,*b,*c;
-  int i,dxcc,cqzone,ituzone;
-  float latitude,longitude,gmtshift;
+  char riga[100000],*dd[20],*p,*ff,cont[256],prefix[256],tmp[1024],*a,*b,*c,*base,*name;
+  int i,dxcc,cqzone,ituzone,cq0,itu0;
+  float latitude,longitude,gmtshift,lat0,lon0,gmt0;
   
   f=fopen("cty.csv","r");
   while(fgets(riga,sizeof(riga),f)){
@@ -21,12 +21,16 @@ void loadcty(){
     }
     if(!dd[9])continue;
     dd[9][strcspn(dd[9],"\r\n")]=0;
-    if(strlen(dd[9])>0)dd[9][strlen(dd[9])-1]=0;
+    base=dd[0];
+    name=dd[1];
+    dxcc=atoi(dd[2]);
+    cq0=atoi(dd[4]);
+    itu0=atoi(dd[5]);
+    lat0=(float)atof(dd[6]);
+    lon0=(float)atof(dd[7]);
+    gmt0=(float)atof(dd[8]);
     ff=strtok(dd[9]," ");
     while(ff){
-      strcpy(base,dd[0]);
-      strcpy(name,dd[1]);
-      dxcc=atoi(dd[2]);
       strcpy(tmp,ff);
       a=strchr(tmp,'{');
       if(a){
@@ -43,7 +47,7 @@ void loadcty(){
         cqzone=atoi(a+1);
         memmove(a,b+1,strlen(b+1)+1);
       }
-      else cqzone=atoi(dd[4]);
+      else cqzone=cq0;
       a=strchr(tmp,'[');
       if(a){
         b=strchr(a,']');
@@ -51,7 +55,7 @@ void loadcty(){
         ituzone=atoi(a+1);
         memmove(a,b+1,strlen(b+1)+1);
       }
-      else ituzone=atoi(dd[5]);
+      else ituzone=itu0;
       a=strchr(tmp,'<');
       if(a){
         b=strchr(a,'>');
@@ -63,8 +67,8 @@ void loadcty(){
         memmove(a,b+1,strlen(b+1)+1);
       }
       else{
-        latitude=(float)atof(dd[6]);
-        longitude=(float)atof(dd[7]);
+        latitude=lat0;
+        longitude=lon0;
       }
       a=strchr(tmp,'~');
       if(a){
@@ -73,7 +77,7 @@ void loadcty(){
         gmtshift=(float)atof(a+1);
         memmove(a,b+1,strlen(b+1)+1);
       }
-      else gmtshift=(float)atof(dd[8]);
+      else gmtshift=gmt0;
       if(tmp[0]=='=')strcpy(prefix,tmp+1);
       else strcpy(prefix,tmp);
       printf("%s %d %s %d %d\n",prefix,dxcc,cont,cqzone,ituzone);
