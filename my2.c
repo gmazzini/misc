@@ -35,6 +35,7 @@ void loadcty(){
     }
     if(!dd[9])continue;
     dd[9][strcspn(dd[9],"\r\n")]=0;
+    if(strlen(dd[9])>0)dd[9][strlen(dd[9])-1]=0;
     base=dd[0];
     name=dd[1];
     dxcc=atoi(dd[2]);
