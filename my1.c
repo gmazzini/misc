@@ -467,7 +467,7 @@ int main(void) {
       fprintf(fp,"\t%d\n",n);
       fprintf(fp,"%s\t%10ld","PTI",0);
       for(l3=b=0;b<BAND;b++){fprintf(fp,"\t%d",pto[b]); l3+=pto[b]; }
-      fprintf(fp,"\t%ld\t%4.2f\n",l3,((float)n)/l3);
+      fprintf(fp,"\t%ld\t%4.2f\n",l3,((float)l3)/n);
       fprintf(fp,"%s\t%10ld","MUL",0);
       for(b=0;b<BAND;b++)fprintf(fp,"\t%d",m[b]);
       fprintf(fp,"\t%d\t%ld\n",m[BAND],l3*m[BAND]);
