@@ -465,11 +465,9 @@ int main(void) {
       fprintf(fp,"%s\t%10ld","QSO",0);
       for(n=b=0;b<BAND;b++){fprintf(fp,"\t%d",qm[b]); n+=qm[b]; }
       fprintf(fp,"\t%d\n",n);
-      /*
       fprintf(fp,"%s\t%10ld","PTI",0);
       for(l3=b=0;b<BAND;b++){fprintf(fp,"\t%d",pto[b]); l3+=pto[b]; }
       fprintf(fp,"\t%ld\n",l3);
-      */
       fprintf(fp,"%s\t%10ld","MUL",0);
       for(b=0;b<BAND;b++)fprintf(fp,"\t%d",m[b]);
       fprintf(fp,"\t%d\n",m[BAND]);
