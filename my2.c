@@ -155,12 +155,14 @@ void loadcty(){
 }
 
 int main(){
-    cty=(struct cty *)malloc(50000*sizeof(struct cty));
-    loadcty();
-
+  char buf[20];
   struct cty *p;
-p=searchcty("IZ1ABC");
-if(p)printf("%s %d %s %d %d\n",p->prefix,p->dxcc,p->cont,p->cqzone,p->ituzone);
-else printf("non trovato\n");
-
+  cty=(struct cty *)malloc(50000*sizeof(struct cty));
+  loadcty();
+  for(;;){
+    fscanf("%s",buf);
+    p=searchcty(buf);
+    if(p)printf("%s %d %s %d %d\n",p->prefix,p->dxcc,p->cont,p->cqzone,p->ituzone);
+    else printf("non trovato\n");
+  }
 }
