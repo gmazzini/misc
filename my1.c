@@ -433,9 +433,9 @@ int main(void) {
           qm[b]++;
         }
         cc=searchcty(dxlog[l].call);
-        if(cc->dxcc==248)pti[b]+=1;
-        else if(strcmp(cc->cont,"EU")==0)pti[b]+=(b<3)?2:1;
-        else pti[b]+=(b<3)?6:3;
+        if(cc->dxcc==248)pto[b]+=1;
+        else if(strcmp(cc->cont,"EU")==0)pto[b]+=(b<3)?2:1;
+        else pto[b]+=(b<3)?6:3;
       }
 
       fp=fopen(FILEOUT,"wt");
@@ -464,7 +464,7 @@ int main(void) {
       for(n=b=0;b<BAND;b++){fprintf(fp,"\t%d",qm[b]); n+=qm[b]; }
       fprintf(fp,"\t%d\n",n);
       fprintf(fp,"%s\t%10ld","PTI",0);
-      for(l3=b=0;b<BAND;b++){fprintf(fp,"\t%d",pti[b]); l3+=pti[b]; }
+      for(l3=b=0;b<BAND;b++){fprintf(fp,"\t%d",pto[b]); l3+=pto[b]; }
       fprintf(fp,"\t%ld\n",l3);
       fprintf(fp,"%s\t%10ld","MUL",0);
       for(b=0;b<BAND;b++)fprintf(fp,"\t%d",m[b]);
