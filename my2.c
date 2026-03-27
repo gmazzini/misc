@@ -2,6 +2,20 @@
 #include <stdlib.h>
 #include <string.h>
 
+struct cty {
+  char prefix[16];
+  int dxcc;
+  char cont[2];
+  int cqzone;
+  int ituzone;
+} *cty;
+long ncty=0;
+int cmpcty(const void *p1,const void *p2){
+  struct cty *a,*b;
+  a=(struct cty *)p1;
+  b=(struct cty *)p2;
+  return strcmp(a->prefix,b->prefix);
+}
 
 void loadcty(){
   FILE *f;
@@ -80,13 +94,22 @@ void loadcty(){
       else gmtshift=gmt0;
       if(tmp[0]=='=')strcpy(prefix,tmp+1);
       else strcpy(prefix,tmp);
-      printf("%s %d %s %d %d\n",prefix,dxcc,cont,cqzone,ituzone);
+      strcpy(cty[ncty].prefix,prefix);
+      cty[ncty].dxcc=dxcc;
+      strcpy(cty[ncty].cont,cont);
+      cty[ncty].cqzone=cqzone;
+      cty[ncty].ituzone=ituzone;
+      ncty++;
       ff=strtok(NULL," ");
     }
   }
   fclose(f);
+  qsort(cty,ncty,sizeof(struct cty),cmpcty);
 }
 
 int main(){
+    cty=(struct cty *)malloc(50000*sizeof(struct cty));
     loadcty();
+
+int i;  for(i=0;i<ncty;i++)printf("%s %d %s %d %d\n",cty[i].prefix,cty[i].dxcc,cty[i].cont,cty[i].cqzone,cty[i].ituzone);
 }
