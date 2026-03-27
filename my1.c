@@ -174,7 +174,8 @@ int main(void) {
   }
   fclose(fp);
   printf("log=%d\n",nlog);
- s=socket(AF_INET,SOCK_DGRAM,0);
+  
+  s=socket(AF_INET,SOCK_DGRAM,0);
   setsockopt(s,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof(yes));
   setsockopt(s,SOL_SOCKET,SO_REUSEPORT,&yes,sizeof(yes));
   memset(&addr,0,sizeof(addr));
@@ -201,7 +202,8 @@ int main(void) {
       memcpy(oo[i].freq2,ss.freq2,20);
       memcpy(oo[i].operator,ss.operator,16);
     }
-if(strcmp(hh.type,"TXS")==0){
+    
+    if(strcmp(hh.type,"TXS")==0){
      memcpy(&tt,rr,64);
      memcpy(oo[i].call1,tt.call1,16);
      memcpy(oo[i].call2,tt.call2,16);
@@ -235,7 +237,8 @@ if(strcmp(hh.type,"TXS")==0){
         nlog++;
       }
     }
- t2=now_us();
+    
+    t2=now_us();
     if(t2-t1>1000000){
       t1=t2;
       gg=time(NULL);
