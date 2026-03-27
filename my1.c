@@ -433,7 +433,7 @@ int main(void) {
           qm[b]++;
         }
         cc=searchcty(dxlog[l].call);
-        id(cc){
+        if(cc){
           if(cc->dxcc==248)pto[b]+=1;
           else if(strcmp(cc->cont,"EU")==0)pto[b]+=(b<3)?2:1;
           else pto[b]+=(b<3)?6:3;
