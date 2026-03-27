@@ -76,8 +76,7 @@ void loadcty(){
       else gmtshift=(float)atof(dd[8]);
       if(tmp[0]=='=')strcpy(prefix,tmp+1);
       else strcpy(prefix,tmp);
-      sprintf(q,"insert into cty(base,name,dxcc,cont,cqzone,ituzone,latitude,longitude,gmtshift,prefix)values('%s','%s',%d,'%s',%d,%d,%f,%f,%f,'%s')",base,esc,dxcc,cont,cqzone,ituzone,latitude,longitude,gmtshift,prefix);
-      printf("%s\n",q);
+      printf("%s %d %s %d %d\n",prefix,dxcc,cont,cqzone,ituzone);
       ff=strtok(NULL," ");
     }
   }
