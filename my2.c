@@ -160,7 +160,7 @@ int main(){
   cty=(struct cty *)malloc(50000*sizeof(struct cty));
   loadcty();
   for(;;){
-    fscanf("%s",buf);
+    scanf("%s",buf);
     p=searchcty(buf);
     if(p)printf("%s %d %s %d %d\n",p->prefix,p->dxcc,p->cont,p->cqzone,p->ituzone);
     else printf("non trovato\n");
