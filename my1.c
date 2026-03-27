@@ -123,6 +123,158 @@ uint32_t hash24(const char *s) {
   return h&0xFFFFFFu;
 }
 
+struct cty {
+  char prefix[16];
+  int dxcc;
+  char cont[3];
+  int cqzone;
+  int ituzone;
+} *cty;
+long ncty=0;
+
+int cmpcty(const void *p1,const void *p2){
+  struct cty *a,*b;
+  a=(struct cty *)p1;
+  b=(struct cty *)p2;
+  return strcmp(a->prefix,b->prefix);
+}
+
+struct cty *findcty(char *prefix){
+  struct cty key,*res;
+  strcpy(key.prefix,prefix);
+  res=(struct cty *)bsearch(&key,cty,ncty,sizeof(struct cty),cmpcty);
+  return res;
+}
+
+struct cty *searchcty(char *incall){
+  static struct cty out;
+  char *p,call[20];
+  struct cty *res;
+  int i,n;
+  const char *suffixes[]={"P","M","LH","MM","AM","A","B","QRP","0","1","2","3","4","5","6","7","8","9"};
+
+  out.prefix[0]='\0';
+  out.dxcc=0;
+  out.cont[0]='\0';
+  out.cqzone=0;
+  out.ituzone=0;
+
+  n=sizeof(suffixes)/sizeof(suffixes[0]);
+  strcpy(call,incall);
+  p=strrchr(call,'/');
+  if(p){
+    for(i=0;i<n;i++)if(strcmp(p+1,suffixes[i])==0)break;
+    if(i<n)*p='\0';
+  }
+  p=strrchr(call,'/');
+  if(p){
+    n=strlen(call);
+    if((p-call)<(n-(p-call)-1))*p='\0';
+    else strcpy(call,p+1);
+  }
+  n=strlen(call);
+  for(i=n;i>0;i--){
+    call[i]='\0';
+    res=findcty(call);
+    if(res){
+      out=*res;
+      return &out;
+    }
+  }
+  return NULL;
+}
+
+void loadcty(){
+  FILE *f;
+  char riga[100000],*dd[20],*p,*ff,cont[256],prefix[256],tmp[1024],*a,*b,*c,*base,*name;
+  int i,dxcc,cqzone,ituzone,cq0,itu0;
+  float latitude,longitude,gmtshift,lat0,lon0,gmt0;
+  
+  f=fopen("cty.csv","r");
+  while(fgets(riga,sizeof(riga),f)){
+    for(i=0;i<20;i++)dd[i]=0;
+    p=strtok(riga,",");
+    i=0;
+    while(p&&i<20){
+      dd[i]=p;
+      i++;
+      p=strtok(NULL,",");
+    }
+    if(!dd[9])continue;
+    dd[9][strcspn(dd[9],"\r\n")]=0;
+    if(strlen(dd[9])>0)dd[9][strlen(dd[9])-1]=0;
+    base=dd[0];
+    name=dd[1];
+    dxcc=atoi(dd[2]);
+    cq0=atoi(dd[4]);
+    itu0=atoi(dd[5]);
+    lat0=(float)atof(dd[6]);
+    lon0=(float)atof(dd[7]);
+    gmt0=(float)atof(dd[8]);
+    ff=strtok(dd[9]," ");
+    while(ff){
+      strcpy(tmp,ff);
+      a=strchr(tmp,'{');
+      if(a){
+        b=strchr(a,'}');
+        strncpy(cont,a+1,b-a-1);
+        cont[b-a-1]=0;
+        memmove(a,b+1,strlen(b+1)+1);
+      }
+      else strcpy(cont,dd[3]);
+      a=strchr(tmp,'(');
+      if(a){
+        b=strchr(a,')');
+        *b=0;
+        cqzone=atoi(a+1);
+        memmove(a,b+1,strlen(b+1)+1);
+      }
+      else cqzone=cq0;
+      a=strchr(tmp,'[');
+      if(a){
+        b=strchr(a,']');
+        *b=0;
+        ituzone=atoi(a+1);
+        memmove(a,b+1,strlen(b+1)+1);
+      }
+      else ituzone=itu0;
+      a=strchr(tmp,'<');
+      if(a){
+        b=strchr(a,'>');
+        c=strchr(a,'/');
+        *c=0;
+        *b=0;
+        latitude=(float)atof(a+1);
+        longitude=(float)atof(c+1);
+        memmove(a,b+1,strlen(b+1)+1);
+      }
+      else{
+        latitude=lat0;
+        longitude=lon0;
+      }
+      a=strchr(tmp,'~');
+      if(a){
+        b=strchr(a+1,'~');
+        *b=0;
+        gmtshift=(float)atof(a+1);
+        memmove(a,b+1,strlen(b+1)+1);
+      }
+      else gmtshift=gmt0;
+      if(tmp[0]=='=')strcpy(prefix,tmp+1);
+      else strcpy(prefix,tmp);
+      strcpy(cty[ncty].prefix,prefix);
+      cty[ncty].dxcc=dxcc;
+      strcpy(cty[ncty].cont,cont);
+      cty[ncty].cqzone=cqzone;
+      cty[ncty].ituzone=ituzone;
+      ncty++;
+      ff=strtok(NULL," ");
+    }
+  }
+  fclose(f);
+  qsort(cty,ncty,sizeof(struct cty),cmpcty);
+}
+
 int main(void) {
   int s,n,i,j,b,m[BAND+1],qm[BAND],nlog,l,yes=1,qso[BAND],qsoS[MEMBER];
   struct sockaddr_in addr, client;
@@ -130,14 +282,17 @@ int main(void) {
   char buf[1024],buf2[1024],rx[512],*rr,*aux,*end,*p,*q;
   time_t gg,nn;
   FILE *fp,*fp2;
-  long long t1,t2;
+  long long t1,t2,pto[BAND];
   uint32_t l1,l2,l3;
   char *ha[BAND+1],*qa[BAND];
+  struct cty *cc;
 
   for(i=0;i<(BAND+1);i++)ha[i]=malloc(0xFFFFFF*sizeof(char));
   for(i=0;i<BAND;i++)qa[i]=malloc(0xFFFFFF*sizeof(char));
-
   dxlog=malloc(NLOG*sizeof(struct dxlog));
+  cty=(struct cty *)malloc(50000*sizeof(struct cty));
+  loadcty();
+  
   fp=fopen(FILELOG,"rt");
   nlog=0;
   for(;;){
@@ -248,6 +403,7 @@ int main(void) {
       for(i=0;i<BAND;i++){
         m[i]=0; memset(ha[i],0,0xFFFFFF);
         qm[i]=0; memset(qa[i],0,0xFFFFFF);
+        pto[i]=0;
       }
       m[BAND]=0; memset(ha[BAND],0,0xFFFFFF);
       for(l=0;l<nlog;l++){
@@ -276,6 +432,10 @@ int main(void) {
           qa[b][l2]=1;
           qm[b]++;
         }
+        cc=searchcty(dxlog[l].call);
+        if(cc->dxcc==248)pti[b]+=1;
+        else if(strcmp(cc->cont,"EU")==0)pti[b]+=(b<3)?2:1;
+        else pti[b]+=(b<3)?6:3;
       }
 
       fp=fopen(FILEOUT,"wt");
@@ -303,6 +463,9 @@ int main(void) {
       fprintf(fp,"%s\t%10ld","QSO",0);
       for(n=b=0;b<BAND;b++){fprintf(fp,"\t%d",qm[b]); n+=qm[b]; }
       fprintf(fp,"\t%d\n",n);
+      fprintf(fp,"%s\t%10ld","PTI",0);
+      for(l3=b=0;b<BAND;b++){fprintf(fp,"\t%d",pti[b]); l3+=pti[b]; }
+      fprintf(fp,"\t%ld\n",l3);
       fprintf(fp,"%s\t%10ld","MUL",0);
       for(b=0;b<BAND;b++)fprintf(fp,"\t%d",m[b]);
       fprintf(fp,"\t%d\n",m[BAND]);
