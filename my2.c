@@ -5,16 +5,62 @@
 struct cty {
   char prefix[16];
   int dxcc;
-  char cont[2];
+  char cont[3];
   int cqzone;
   int ituzone;
 } *cty;
 long ncty=0;
+
 int cmpcty(const void *p1,const void *p2){
   struct cty *a,*b;
   a=(struct cty *)p1;
   b=(struct cty *)p2;
   return strcmp(a->prefix,b->prefix);
+}
+
+struct cty *findcty(char *prefix){
+  struct cty key,*res;
+  strcpy(key.prefix,prefix);
+  res=(struct cty *)bsearch(&key,cty,ncty,sizeof(struct cty),cmpcty);
+  return res;
+}
+
+struct cty *searchcty(char *incall){
+  static struct cty out;
+  char *p,call[20];
+  struct cty *res;
+  int i,n;
+  const char *suffixes[]={"P","M","LH","MM","AM","A","B","QRP","0","1","2","3","4","5","6","7","8","9"};
+
+  out.prefix[0]='\0';
+  out.dxcc=0;
+  out.cont[0]='\0';
+  out.cqzone=0;
+  out.ituzone=0;
+
+  n=sizeof(suffixes)/sizeof(suffixes[0]);
+  strcpy(call,incall);
+  p=strrchr(call,'/');
+  if(p){
+    for(i=0;i<n;i++)if(strcmp(p+1,suffixes[i])==0)break;
+    if(i<n)*p='\0';
+  }
+  p=strrchr(call,'/');
+  if(p){
+    n=strlen(call);
+    if((p-call)<(n-(p-call)-1))*p='\0';
+    else strcpy(call,p+1);
+  }
+  n=strlen(call);
+  for(i=n;i>0;i--){
+    call[i]='\0';
+    res=findcty(call);
+    if(res){
+      out=*res;
+      return &out;
+    }
+  }
+  return NULL;
 }
 
 void loadcty(){
@@ -112,5 +158,9 @@ int main(){
     cty=(struct cty *)malloc(50000*sizeof(struct cty));
     loadcty();
 
-int i;  for(i=0;i<ncty;i++)printf("%s %d %s %d %d\n",cty[i].prefix,cty[i].dxcc,cty[i].cont,cty[i].cqzone,cty[i].ituzone);
+  struct cty *p;
+p=searchcty("IZ1ABC");
+if(p)printf("%s %d %s %d %d\n",p->prefix,p->dxcc,p->cont,p->cqzone,p->ituzone);
+else printf("non trovato\n");
+
 }
