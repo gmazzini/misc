@@ -15,7 +15,7 @@
 #define FILELOG "/home/www/data/wpx2026"
 
 const char *station[MEMBER] = {"LZH", "VUS", "AOT", "ORO", "COW", "UFH", "AUY", "JBB", "TRE"};
-const char *operator[OPER] = {"IU4ICT", "IU5LVM", "IU5JZQ", "I4KMW", "I4UFH", "I4YMN", "IK2WAD", "IK4AUY", "IK4LZH", "IU4JFJ", "IW2JBB", "IW4AOT", "IZ2JQP", "IZ4COW", "IZ4ORO", "IZ4VUS", "MISS"};
+const char *operator[OPER] = {"IU4ICT", "IU5LVM", "IU5JZQ", "I4KMW", "I4UFH", "I4YMN", "IK2WAD", "IK4AUY", "IK4LZH", "IU4FJF", "IW2JBB", "IW4AOT", "IZ2JQP", "IZ4COW", "IZ4ORO", "IZ4VUS", "MISS"};
 const char *band[BAND] = {"160", "80", "40", "20", "15", "10"};
 
 struct header {
