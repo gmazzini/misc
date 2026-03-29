@@ -17,6 +17,7 @@
 const char *station[MEMBER] = {"AUY", "COW", "LZH", "JBB", "TRE", "ORO", "UFH", "AOT", "VUS"};
 const char *operator[OPER] = {"IK4AUY", "IZ4COW", "IU4ICT", "IU5LVM", "IU5JZQ", "IK2WAD", "IZ2JQP", "IW2JBB", "IZ4ORO", "I4KMW", "I4YMN", "IU4FJF", "I4UFH", "IK4LZH", "IW4AOT", "IZ4VUS", "MISS"};
 const char *band[BAND] = {"160", "80", "40", "20", "15", "10"};
+const int target[BAND+1] = {250, 900, 1500, 1500, 1500, 900, 6550};
 
 struct header {
   char station[16];
@@ -489,6 +490,9 @@ int main(void) {
       fprintf(fp,"%s\t%10ld","MULs",0);
       for(b=0;b<BAND;b++)fprintf(fp,"\t%d",mm[b]);
       fprintf(fp,"\t%d\t%ld\n",m[BAND],l3*m[BAND]);
+      fprintf(fp,"%s\t%10ld","TARGET",0);
+      for(b=0;b<BAND;b++)fprintf(fp,"\t%d\%",(int)(100.0*qm[b]/target[b]));
+      fprintf(fp,"\t%d\n",(int)(100.0*n/target[BAND]));
 
       fclose(fp);
     }
