@@ -276,7 +276,7 @@ void loadcty(){
 }
 
 int main(void) {
-  int s,n,i,j,b,m[BAND+1],qm[BAND],nlog,l,yes=1,qso[BAND],qsoS[MEMBER];
+  int s,n,i,j,b,m[BAND+1],mm[BAND],qm[BAND],nlog,l,yes=1,qso[BAND],qsoS[MEMBER];
   struct sockaddr_in addr, client;
   socklen_t client_len = sizeof(client);
   char buf[1024],buf2[1024],rx[512],*rr,*aux,*end,*p,*q;
@@ -401,7 +401,7 @@ int main(void) {
       for(i=0;i<MEMBER;i++)qsoS[i]=0;
       for(i=0;i<OPER;i++)for(b=0;b<BAND;b++){ww[i].qso[b]=0; qso[b]=0;}
       for(i=0;i<BAND;i++){
-        m[i]=0; memset(ha[i],0,0xFFFFFF);
+        m[i]=0; mm[i]=0; memset(ha[i],0,0xFFFFFF);
         qm[i]=0; memset(qa[i],0,0xFFFFFF);
         pto[i]=0;
       }
@@ -422,6 +422,7 @@ int main(void) {
         if(ha[BAND][l2]==0){
           ha[BAND][l2]=1;
           m[BAND]++;
+          mm[b]++;
         }
         if(ha[b][l2]==0){
           ha[b][l2]=1;
@@ -468,8 +469,11 @@ int main(void) {
       fprintf(fp,"%s\t%10ld","PTI",0);
       for(l3=b=0;b<BAND;b++){fprintf(fp,"\t%d",pto[b]); l3+=pto[b]; }
       fprintf(fp,"\t%ld\t%4.2f\n",l3,((float)l3)/n);
-      fprintf(fp,"%s\t%10ld","MUL",0);
+      fprintf(fp,"%s\t%10ld","MULb",0);
       for(b=0;b<BAND;b++)fprintf(fp,"\t%d",m[b]);
+      fprintf(fp,"\t%d\t%ld\n",m[BAND],l3*m[BAND]);
+      fprintf(fp,"%s\t%10ld","MULs",0);
+      for(b=0;b<BAND;b++)fprintf(fp,"\t%d",mm[b]);
       fprintf(fp,"\t%d\t%ld\n",m[BAND],l3*m[BAND]);
 
       fclose(fp);
