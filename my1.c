@@ -432,7 +432,7 @@ int main(void) {
         qsoS[i]++;
         ww[j].qso[b]++;
         qso[b]++;
-        ww[j].last_qso=atol(dxlog[l].time);
+        ww[j].last_qso=dxlog[l].time;
         if(nn<ww[j].last_qso)nn=ww[j].last_qso;
         l2=hash24(wpx(dxlog[l].call));
         if(ha[BAND][l2]==0){
