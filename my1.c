@@ -491,8 +491,8 @@ int main(void) {
       for(b=0;b<BAND;b++)fprintf(fp,"\t%d",mm[b]);
       fprintf(fp,"\t%d\t%ld\n",m[BAND],l3*m[BAND]);
       fprintf(fp,"%s\t%10ld","TARGET",0);
-      for(b=0;b<BAND;b++)fprintf(fp,"\t%d",(int)(100.0*qm[b]/target[b]));
-      fprintf(fp,"\t%d\n",(int)(100.0*n/target[BAND]));
+      for(b=0;b<BAND;b++)fprintf(fp,"\t%4.2f%%",100.0*qm[b]/target[b]);
+      fprintf(fp,"\t%4.2f%%\n",100.0*n/target[BAND]);
 
       fclose(fp);
     }
