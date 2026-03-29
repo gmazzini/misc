@@ -83,7 +83,7 @@ struct dxlog {
   char band[10];
   char freq[15];
   char mode[10];
-  char time[15];
+  time_t time;
   char call[16];
   char stx[5];
   char ntx[6];
@@ -318,7 +318,7 @@ int main(void) {
     p=strtok(buf,","); memcpy(dxlog[nlog].band,p,10);
     p=strtok(0,","); memcpy(dxlog[nlog].freq,p,15);
     p=strtok(0,","); memcpy(dxlog[nlog].mode,p,10);
-    p=strtok(0,","); memcpy(dxlog[nlog].time,p,15);
+    p=strtok(0,","); dxlog[nlog].time=(time_t)atol(p);
     p=strtok(0,","); memcpy(dxlog[nlog].call,p,16);
     p=strtok(0,","); memcpy(dxlog[nlog].stx,p,5);
     p=strtok(0,","); memcpy(dxlog[nlog].ntx,p,6);
@@ -326,7 +326,7 @@ int main(void) {
     p=strtok(0,","); memcpy(dxlog[nlog].nrx,p,6);
     p=strtok(0,","); memcpy(dxlog[nlog].operator,p,16);
     p=strtok(0,",\n"); memcpy(dxlog[nlog].station,p,15);
-    sprintf(buf2,"%.10s,%.15s,%.10s,%.15s,%.16s,%.5s,%.6s,%.4s,%.6s,%.16s",
+    sprintf(buf2,"%.10s,%.15s,%.10s,%ld,%.16s,%.5s,%.6s,%.4s,%.6s,%.16s",
       dxlog[nlog].band,dxlog[nlog].freq,dxlog[nlog].mode,dxlog[nlog].time,dxlog[nlog].call,
       dxlog[nlog].stx,dxlog[nlog].ntx,dxlog[nlog].srx,dxlog[nlog].nrx,dxlog[nlog].operator);
     l1=hash24(buf2);
@@ -387,7 +387,7 @@ int main(void) {
       memcpy(dxlog[nlog].band,qq.band,10);
       memcpy(dxlog[nlog].freq,qq.freq,15);
       memcpy(dxlog[nlog].mode,qq.mode,10);
-      memcpy(dxlog[nlog].time,qq.time,15);
+      dxlog[nlog].time=atol(qq.time);
       memcpy(dxlog[nlog].call,qq.call,16);
       memcpy(dxlog[nlog].stx,qq.stx,5);
       memcpy(dxlog[nlog].ntx,qq.ntx,6);
@@ -395,7 +395,7 @@ int main(void) {
       memcpy(dxlog[nlog].nrx,qq.nrx,6);
       memcpy(dxlog[nlog].operator,qq.operator,16);
       memcpy(dxlog[nlog].station,qq.station,15);
-      sprintf(buf2,"%.10s,%.15s,%.10s,%.15s,%.16s,%.5s,%.6s,%.4s,%.6s,%.16s",
+      sprintf(buf2,"%.10s,%.15s,%.10s,%ld,%.16s,%.5s,%.6s,%.4s,%.6s,%.16s",
         dxlog[nlog].band,dxlog[nlog].freq,dxlog[nlog].mode,dxlog[nlog].time,dxlog[nlog].call,
         dxlog[nlog].stx,dxlog[nlog].ntx,dxlog[nlog].srx,dxlog[nlog].nrx,dxlog[nlog].operator);
       l1=hash24(buf2);
