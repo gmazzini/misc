@@ -94,7 +94,7 @@ struct dxlog {
   uint32_t hash;
 } *dxlog;
 
-char * wpx(char *s){
+char *wpx(char *s){
   int i;
   static char out[20];
   strcpy(out,s);
