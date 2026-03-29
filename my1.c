@@ -291,6 +291,14 @@ void loadcty(){
   qsort(cty,ncty,sizeof(struct cty),cmpcty);
 }
 
+int cmp_time(const void *a, const void *b){
+  const struct dxlog *x = a;
+  const struct dxlog *y = b;
+  if(x->time < y->time) return -1;
+  if(x->time > y->time) return 1;
+  return 0;
+}
+
 int main(void) {
   int s,n,i,j,b,m[BAND+1],mm[BAND],qm[BAND],nlog,l,yes=1,qso[BAND],qsoS[MEMBER];
   struct sockaddr_in addr, client;
@@ -331,20 +339,10 @@ int main(void) {
       dxlog[nlog].stx,dxlog[nlog].ntx,dxlog[nlog].srx,dxlog[nlog].nrx,dxlog[nlog].operator);
     l1=hash24(buf2);
     dxlog[nlog].hash=l1;
-
-/*
-    for(i=0;i<nlog;i++)if(dxlog[i].hash==l1)break;
-    if(i==nlog){
-      fp2=fopen("/root/prova","at");
-      fprintf(fp2,"%s,%s\n",buf2,dxlog[nlog].station);
-      fclose(fp2);
-    }
-*/
-
     nlog++;
   }
   fclose(fp);
-  printf("log=%d\n",nlog);
+  qsort(dxlog,nlog,sizeof(dxlog[0]),cmp_time);
   
   s=socket(AF_INET,SOCK_DGRAM,0);
   setsockopt(s,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof(yes));
