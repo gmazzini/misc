@@ -1,13 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <curl/curl.h>
 #include <zip.h>
 
 #define TOKEN_FILE "/home/www/data/google_access_token"
 #define SHEET_ID "1RF4N-T2NR2UHai70AzTzwuLXowkLlOQWvFyb8AaE1xg"
 #define SHEET_NAME "prova"
-#define OFFSET 0
+#define OFFSET -20452
 
 struct mem{
   char *ptr;
@@ -21,27 +22,27 @@ static void mem_init(struct mem *m){
 }
 
 static size_t write_cb(void *contents,size_t size,size_t nmemb,void *userp){
-  size_t realsize;
+  size_t real_size;
   struct mem *m;
   char *p;
 
-  realsize=size*nmemb;
+  real_size=size*nmemb;
   m=(struct mem*)userp;
-  p=(char*)realloc(m->ptr,m->len+realsize+1);
+  p=(char*)realloc(m->ptr,m->len+real_size+1);
   if(!p)return 0;
   m->ptr=p;
-  memcpy(m->ptr+m->len,contents,realsize);
-  m->len=m->len+realsize;
+  memcpy(m->ptr+m->len,contents,real_size);
+  m->len=m->len+real_size;
   m->ptr[m->len]='\0';
-  return realsize;
+  return real_size;
 }
 
-static int read_access_token(char *buf,size_t buflen){
+static int read_access_token(char *buf,size_t buf_len){
   FILE *fp;
 
   fp=fopen(TOKEN_FILE,"r");
   if(!fp)return 0;
-  if(!fgets(buf,(int)buflen,fp)){
+  if(!fgets(buf,(int)buf_len,fp)){
     fclose(fp);
     return 0;
   }
@@ -53,9 +54,9 @@ static int read_access_token(char *buf,size_t buflen){
 int main(int argc,char *argv[]){
   CURL *curl;
   struct curl_slist *headers;
-  struct mem body_auth;
-  struct mem body_req;
-  struct mem body_gs;
+  struct mem auth_body;
+  struct mem req_body;
+  struct mem gs_body;
   char auth_post[1024];
   char req_post[2048];
   char gs_post[32768];
@@ -64,25 +65,33 @@ int main(int argc,char *argv[]){
   char gs_url[2048];
   char gs_range[128];
   char google_access_token[512];
-  char token[4096];
-  char data_fmt[16];
+  char gme_token[4096];
+  char date_text[16];
+  char price_values[96][64];
+  char one_price[64];
   char *p;
   char *q;
   char *r;
   char *s;
   char *e;
   char *b64;
-  unsigned char *zipbuf;
-  unsigned char *filebuf;
-  zip_error_t ze;
-  zip_source_t *zs;
-  zip_t *za;
-  zip_file_t *zf;
-  zip_stat_t st;
-  zip_int64_t nr;
-  long http;
+  char *json_buf;
+  unsigned char *zip_buf;
+  unsigned char *file_buf;
+  zip_error_t zip_error;
+  zip_source_t *zip_source;
+  zip_t *zip_archive;
+  zip_file_t *zip_file;
+  zip_stat_t zip_stat;
+  zip_int64_t entry_count;
+  long http_code;
+  int year;
+  int month;
+  int day;
+  int day_index;
+  int sheet_row;
   int len;
-  int outlen;
+  int out_len;
   int val;
   int valb;
   int c;
@@ -90,11 +99,10 @@ int main(int argc,char *argv[]){
   int j;
   int count;
   int err;
-  int giorno;
-  int riga;
-  char prices[96][64];
-  char oneprice[64];
-  char *json_buf;
+  time_t input_time;
+  time_t epoch_time;
+  struct tm input_tm;
+  struct tm epoch_tm;
 
   if(argc!=4){
     fprintf(stderr,"Usage: %s LOGIN PASSWORD YYYYMMDD\n",argv[0]);
@@ -106,27 +114,46 @@ int main(int argc,char *argv[]){
     return 1;
   }
 
-  giorno=(argv[3][6]-'0')*10+(argv[3][7]-'0');
-  riga=90-giorno+OFFSET;
+  year=(argv[3][0]-'0')*1000+(argv[3][1]-'0')*100+(argv[3][2]-'0')*10+(argv[3][3]-'0');
+  month=(argv[3][4]-'0')*10+(argv[3][5]-'0');
+  day=(argv[3][6]-'0')*10+(argv[3][7]-'0');
 
-  if(riga<1){
-    fprintf(stderr,"invalid row %d\n",riga);
+  memset(&input_tm,0,sizeof(input_tm));
+  input_tm.tm_year=year-1900;
+  input_tm.tm_mon=month-1;
+  input_tm.tm_mday=day;
+  input_tm.tm_hour=12;
+  input_tm.tm_min=0;
+  input_tm.tm_sec=0;
+  input_tm.tm_isdst=-1;
+
+  memset(&epoch_tm,0,sizeof(epoch_tm));
+  epoch_tm.tm_year=70;
+  epoch_tm.tm_mon=0;
+  epoch_tm.tm_mday=1;
+  epoch_tm.tm_hour=12;
+  epoch_tm.tm_min=0;
+  epoch_tm.tm_sec=0;
+  epoch_tm.tm_isdst=-1;
+
+  input_time=mktime(&input_tm);
+  epoch_time=mktime(&epoch_tm);
+
+  if(input_time==(time_t)-1||epoch_time==(time_t)-1){
+    fprintf(stderr,"date conversion error\n");
     return 1;
   }
 
-  data_fmt[0]=argv[3][6];
-  data_fmt[1]=argv[3][7];
-  data_fmt[2]='/';
-  data_fmt[3]=argv[3][4];
-  data_fmt[4]=argv[3][5];
-  data_fmt[5]='/';
-  data_fmt[6]=argv[3][0];
-  data_fmt[7]=argv[3][1];
-  data_fmt[8]=argv[3][2];
-  data_fmt[9]=argv[3][3];
-  data_fmt[10]=0;
+  day_index=(int)((input_time-epoch_time)/86400);
+  sheet_row=day_index+OFFSET;
 
-  snprintf(gs_range,sizeof(gs_range),"%s!A%d:CS%d",SHEET_NAME,riga,riga);
+  if(sheet_row<1){
+    fprintf(stderr,"invalid row %d\n",sheet_row);
+    return 1;
+  }
+
+  snprintf(date_text,sizeof(date_text),"%02d/%02d/%04d",day,month,year);
+  snprintf(gs_range,sizeof(gs_range),"%s!A%d:CS%d",SHEET_NAME,sheet_row,sheet_row);
 
   if(!read_access_token(google_access_token,sizeof(google_access_token))){
     fprintf(stderr,"google access token not found\n");
@@ -135,17 +162,19 @@ int main(int argc,char *argv[]){
 
   curl_global_init(CURL_GLOBAL_DEFAULT);
 
-  mem_init(&body_auth);
-  mem_init(&body_req);
-  mem_init(&body_gs);
-
-  headers=NULL;
+  mem_init(&auth_body);
+  mem_init(&req_body);
+  mem_init(&gs_body);
 
   snprintf(auth_post,sizeof(auth_post),"{\"Login\":\"%s\",\"Password\":\"%s\"}",argv[1],argv[2]);
 
   curl=curl_easy_init();
-  if(!curl)return 1;
+  if(!curl){
+    curl_global_cleanup();
+    return 1;
+  }
 
+  headers=NULL;
   headers=curl_slist_append(headers,"Content-Type: application/json");
 
   curl_easy_setopt(curl,CURLOPT_URL,"https://api.mercatoelettrico.org/request/api/v1/Auth");
@@ -154,7 +183,7 @@ int main(int argc,char *argv[]){
   curl_easy_setopt(curl,CURLOPT_POSTFIELDS,auth_post);
   curl_easy_setopt(curl,CURLOPT_POSTFIELDSIZE,(long)strlen(auth_post));
   curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,write_cb);
-  curl_easy_setopt(curl,CURLOPT_WRITEDATA,&body_auth);
+  curl_easy_setopt(curl,CURLOPT_WRITEDATA,&auth_body);
   curl_easy_setopt(curl,CURLOPT_SSL_VERIFYPEER,1L);
   curl_easy_setopt(curl,CURLOPT_SSL_VERIFYHOST,2L);
   curl_easy_setopt(curl,CURLOPT_CONNECTTIMEOUT,15L);
@@ -165,15 +194,21 @@ int main(int argc,char *argv[]){
     curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
     curl_global_cleanup();
+    free(auth_body.ptr);
+    free(req_body.ptr);
+    free(gs_body.ptr);
     return 1;
   }
 
-  p=strstr(body_auth.ptr,"\"token\"");
+  p=strstr(auth_body.ptr,"\"token\"");
   if(p==NULL){
-    printf("%s\n",body_auth.ptr);
+    printf("%s\n",auth_body.ptr);
     curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
     curl_global_cleanup();
+    free(auth_body.ptr);
+    free(req_body.ptr);
+    free(gs_body.ptr);
     return 1;
   }
 
@@ -183,14 +218,14 @@ int main(int argc,char *argv[]){
   q=strchr(p,'"');
 
   i=0;
-  while(p<q&&i<(int)sizeof(token)-1){
-    token[i]=*p;
+  while(p<q&&i<(int)sizeof(gme_token)-1){
+    gme_token[i]=*p;
     i++;
     p++;
   }
-  token[i]=0;
+  gme_token[i]=0;
 
-  printf("TOKEN=%s\n",token);
+  printf("TOKEN=%s\n",gme_token);
 
   snprintf(req_post,sizeof(req_post),
     "{\"Platform\":\"PublicMarketResults\","
@@ -207,12 +242,15 @@ int main(int argc,char *argv[]){
   curl=curl_easy_init();
   if(!curl){
     curl_global_cleanup();
+    free(auth_body.ptr);
+    free(req_body.ptr);
+    free(gs_body.ptr);
     return 1;
   }
 
   headers=NULL;
   headers=curl_slist_append(headers,"Content-Type: application/json");
-  snprintf(auth_header,sizeof(auth_header),"Authorization: Bearer %s",token);
+  snprintf(auth_header,sizeof(auth_header),"Authorization: Bearer %s",gme_token);
   headers=curl_slist_append(headers,auth_header);
 
   curl_easy_setopt(curl,CURLOPT_URL,"https://api.mercatoelettrico.org/request/api/v1/RequestData");
@@ -221,7 +259,7 @@ int main(int argc,char *argv[]){
   curl_easy_setopt(curl,CURLOPT_POSTFIELDS,req_post);
   curl_easy_setopt(curl,CURLOPT_POSTFIELDSIZE,(long)strlen(req_post));
   curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,write_cb);
-  curl_easy_setopt(curl,CURLOPT_WRITEDATA,&body_req);
+  curl_easy_setopt(curl,CURLOPT_WRITEDATA,&req_body);
   curl_easy_setopt(curl,CURLOPT_SSL_VERIFYPEER,1L);
   curl_easy_setopt(curl,CURLOPT_SSL_VERIFYHOST,2L);
   curl_easy_setopt(curl,CURLOPT_CONNECTTIMEOUT,15L);
@@ -232,15 +270,21 @@ int main(int argc,char *argv[]){
     curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
     curl_global_cleanup();
+    free(auth_body.ptr);
+    free(req_body.ptr);
+    free(gs_body.ptr);
     return 1;
   }
 
-  p=strstr(body_req.ptr,"\"contentResponse\"");
+  p=strstr(req_body.ptr,"\"contentResponse\"");
   if(p==NULL){
-    printf("%s\n",body_req.ptr);
+    printf("%s\n",req_body.ptr);
     curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
     curl_global_cleanup();
+    free(auth_body.ptr);
+    free(req_body.ptr);
+    free(gs_body.ptr);
     return 1;
   }
 
@@ -254,10 +298,10 @@ int main(int argc,char *argv[]){
   for(i=0;i<len;i++)b64[i]=p[i];
   b64[len]=0;
 
-  zipbuf=(unsigned char*)malloc((len*3)/4+4);
+  zip_buf=(unsigned char*)malloc((len*3)/4+4);
   val=0;
   valb=-8;
-  outlen=0;
+  out_len=0;
 
   for(i=0;i<len;i++){
     c=b64[i];
@@ -273,70 +317,95 @@ int main(int argc,char *argv[]){
     valb=valb+6;
 
     if(valb>=0){
-      zipbuf[outlen]=(unsigned char)((val>>valb)&255);
-      outlen++;
+      zip_buf[out_len]=(unsigned char)((val>>valb)&255);
+      out_len++;
       valb=valb-8;
     }
   }
 
-  zip_error_init(&ze);
-  zs=zip_source_buffer_create(zipbuf,outlen,0,&ze);
-  if(zs==NULL){
+  zip_error_init(&zip_error);
+  zip_source=zip_source_buffer_create(zip_buf,out_len,0,&zip_error);
+  if(zip_source==NULL){
     fprintf(stderr,"zip source error\n");
+    free(b64);
+    free(zip_buf);
     curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
     curl_global_cleanup();
+    free(auth_body.ptr);
+    free(req_body.ptr);
+    free(gs_body.ptr);
     return 1;
   }
 
-  za=zip_open_from_source(zs,0,&ze);
-  if(za==NULL){
+  zip_archive=zip_open_from_source(zip_source,0,&zip_error);
+  if(zip_archive==NULL){
     fprintf(stderr,"zip open error\n");
-    zip_source_free(zs);
+    zip_source_free(zip_source);
+    free(b64);
+    free(zip_buf);
     curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
     curl_global_cleanup();
+    free(auth_body.ptr);
+    free(req_body.ptr);
+    free(gs_body.ptr);
     return 1;
   }
 
-  nr=zip_get_num_entries(za,0);
-  if(nr<1){
+  entry_count=zip_get_num_entries(zip_archive,0);
+  if(entry_count<1){
     fprintf(stderr,"zip empty\n");
-    zip_close(za);
+    zip_close(zip_archive);
+    free(b64);
+    free(zip_buf);
     curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
     curl_global_cleanup();
+    free(auth_body.ptr);
+    free(req_body.ptr);
+    free(gs_body.ptr);
     return 1;
   }
 
-  zip_stat_init(&st);
-  err=zip_stat_index(za,0,0,&st);
+  zip_stat_init(&zip_stat);
+  err=zip_stat_index(zip_archive,0,0,&zip_stat);
   if(err!=0){
     fprintf(stderr,"zip stat error\n");
-    zip_close(za);
+    zip_close(zip_archive);
+    free(b64);
+    free(zip_buf);
     curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
     curl_global_cleanup();
+    free(auth_body.ptr);
+    free(req_body.ptr);
+    free(gs_body.ptr);
     return 1;
   }
 
-  zf=zip_fopen_index(za,0,0);
-  if(zf==NULL){
+  zip_file=zip_fopen_index(zip_archive,0,0);
+  if(zip_file==NULL){
     fprintf(stderr,"zip fopen error\n");
-    zip_close(za);
+    zip_close(zip_archive);
+    free(b64);
+    free(zip_buf);
     curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
     curl_global_cleanup();
+    free(auth_body.ptr);
+    free(req_body.ptr);
+    free(gs_body.ptr);
     return 1;
   }
 
-  filebuf=(unsigned char*)malloc((size_t)st.size+1);
-  zip_fread(zf,filebuf,st.size);
-  filebuf[st.size]=0;
-  zip_fclose(zf);
-  zip_close(za);
+  file_buf=(unsigned char*)malloc((size_t)zip_stat.size+1);
+  zip_fread(zip_file,file_buf,zip_stat.size);
+  file_buf[zip_stat.size]=0;
+  zip_fclose(zip_file);
+  zip_close(zip_archive);
 
-  json_buf=(char*)filebuf;
+  json_buf=(char*)file_buf;
   r=json_buf;
   count=0;
 
@@ -346,6 +415,7 @@ int main(int argc,char *argv[]){
 
     s=strstr(r,"\"Price\"");
     if(s==NULL)break;
+
     s=strchr(s,':');
     s=s+1;
     while(*s==' ')s=s+1;
@@ -353,15 +423,15 @@ int main(int argc,char *argv[]){
     while(*e!=','&&*e!='}'&&*e!=0)e=e+1;
 
     j=0;
-    while(s<e&&j<(int)sizeof(oneprice)-1){
-      oneprice[j]=*s;
+    while(s<e&&j<(int)sizeof(one_price)-1){
+      one_price[j]=*s;
       j++;
       s=s+1;
     }
-    oneprice[j]=0;
+    one_price[j]=0;
 
     if(count<96){
-      strcpy(prices[count],oneprice);
+      strcpy(price_values[count],one_price);
       count++;
     }
 
@@ -370,12 +440,15 @@ int main(int argc,char *argv[]){
 
   if(count!=96){
     fprintf(stderr,"found %d prices, expected 96\n",count);
+    free(b64);
+    free(zip_buf);
+    free(file_buf);
     curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
     curl_global_cleanup();
-    free(b64);
-    free(zipbuf);
-    free(filebuf);
+    free(auth_body.ptr);
+    free(req_body.ptr);
+    free(gs_body.ptr);
     return 1;
   }
 
@@ -383,12 +456,12 @@ int main(int argc,char *argv[]){
   strcat(gs_post,"{\"valueInputOption\":\"RAW\",\"data\":[{\"range\":\"");
   strcat(gs_post,gs_range);
   strcat(gs_post,"\",\"majorDimension\":\"ROWS\",\"values\":[[\"");
-  strcat(gs_post,data_fmt);
+  strcat(gs_post,date_text);
   strcat(gs_post,"\"");
 
   for(i=0;i<96;i++){
     strcat(gs_post,",");
-    strcat(gs_post,prices[i]);
+    strcat(gs_post,price_values[i]);
   }
 
   strcat(gs_post,"]]}]}");
@@ -401,10 +474,13 @@ int main(int argc,char *argv[]){
 
   curl=curl_easy_init();
   if(!curl){
-    curl_global_cleanup();
     free(b64);
-    free(zipbuf);
-    free(filebuf);
+    free(zip_buf);
+    free(file_buf);
+    curl_global_cleanup();
+    free(auth_body.ptr);
+    free(req_body.ptr);
+    free(gs_body.ptr);
     return 1;
   }
 
@@ -418,7 +494,7 @@ int main(int argc,char *argv[]){
   curl_easy_setopt(curl,CURLOPT_POSTFIELDS,gs_post);
   curl_easy_setopt(curl,CURLOPT_POSTFIELDSIZE,(long)strlen(gs_post));
   curl_easy_setopt(curl,CURLOPT_WRITEFUNCTION,write_cb);
-  curl_easy_setopt(curl,CURLOPT_WRITEDATA,&body_gs);
+  curl_easy_setopt(curl,CURLOPT_WRITEDATA,&gs_body);
   curl_easy_setopt(curl,CURLOPT_SSL_VERIFYPEER,1L);
   curl_easy_setopt(curl,CURLOPT_SSL_VERIFYHOST,2L);
   curl_easy_setopt(curl,CURLOPT_CONNECTTIMEOUT,15L);
@@ -426,29 +502,35 @@ int main(int argc,char *argv[]){
 
   if(curl_easy_perform(curl)!=CURLE_OK){
     fprintf(stderr,"google sheets curl error\n");
+    free(b64);
+    free(zip_buf);
+    free(file_buf);
     curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
     curl_global_cleanup();
-    free(b64);
-    free(zipbuf);
-    free(filebuf);
+    free(auth_body.ptr);
+    free(req_body.ptr);
+    free(gs_body.ptr);
     return 1;
   }
 
-  curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE,&http);
-  printf("%s\n",body_gs.ptr?body_gs.ptr:"");
-  printf("COUNT=%d\n",count);
-  printf("ROW=%d\n",riga);
-  printf("HTTP=%ld\n",http);
+  curl_easy_getinfo(curl,CURLINFO_RESPONSE_CODE,&http_code);
 
-  free(body_auth.ptr);
-  free(body_req.ptr);
-  free(body_gs.ptr);
+  printf("%s\n",gs_body.ptr?gs_body.ptr:"");
+  printf("DAY_INDEX=%d\n",day_index);
+  printf("ROW=%d\n",sheet_row);
+  printf("COUNT=%d\n",count);
+  printf("HTTP=%ld\n",http_code);
+
   free(b64);
-  free(zipbuf);
-  free(filebuf);
+  free(zip_buf);
+  free(file_buf);
+  free(auth_body.ptr);
+  free(req_body.ptr);
+  free(gs_body.ptr);
   curl_slist_free_all(headers);
   curl_easy_cleanup(curl);
   curl_global_cleanup();
+
   return 0;
 }
