@@ -7,7 +7,7 @@
 
 #define TOKEN_FILE "/home/www/data/google_access_token"
 #define SHEET_ID "1RF4N-T2NR2UHai70AzTzwuLXowkLlOQWvFyb8AaE1xg"
-#define SHEET_NAME "prova"
+#define SHEET_NAME "data"
 #define OFFSET 20451
 
 struct mem{
