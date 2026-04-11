@@ -453,7 +453,7 @@ int main(int argc,char *argv[]){
   }
 
   gs_post[0]=0;
-  strcat(gs_post,"{\"valueInputOption\":\"RAW\",\"data\":[{\"range\":\"");
+  strcat(gs_post,"{\"valueInputOption\":\"USER_ENTERED\",\"data\":[{\"range\":\"");
   strcat(gs_post,gs_range);
   strcat(gs_post,"\",\"majorDimension\":\"ROWS\",\"values\":[[\"");
   strcat(gs_post,date_text);
