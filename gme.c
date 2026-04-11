@@ -8,7 +8,7 @@
 #define TOKEN_FILE "/home/www/data/google_access_token"
 #define SHEET_ID "1RF4N-T2NR2UHai70AzTzwuLXowkLlOQWvFyb8AaE1xg"
 #define SHEET_NAME "prova"
-#define OFFSET -20452
+#define OFFSET 20451
 
 struct mem{
   char *ptr;
@@ -145,7 +145,7 @@ int main(int argc,char *argv[]){
   }
 
   day_index=(int)((input_time-epoch_time)/86400);
-  sheet_row=day_index+OFFSET;
+  sheet_row=day_index-OFFSET;
 
   if(sheet_row<1){
     fprintf(stderr,"invalid row %d\n",sheet_row);
