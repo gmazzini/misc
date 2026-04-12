@@ -59,16 +59,17 @@ int main(int argc,char *argv[]){
   struct mem gs_body;
   char auth_post[1024];
   char req_post[2048];
-  char gs_post[32768];
+  char gs_post[65536];
   char auth_header[8192];
   char gs_auth_header[2048];
   char gs_url[2048];
   char gs_range[128];
+  char last_col[4];
   char google_access_token[512];
   char gme_token[4096];
   char date_text[16];
-  char price_values[96][64];
-  char sheet_values[96][64];
+  char price_values[100][64];
+  char sheet_values[100][64];
   char one_price[64];
   char *p;
   char *q;
@@ -91,6 +92,7 @@ int main(int argc,char *argv[]){
   int day;
   int day_index;
   int sheet_row;
+  int sheet_value_count;
   int len;
   int out_len;
   int val;
@@ -116,7 +118,7 @@ int main(int argc,char *argv[]){
   year=(argv[3][0]-'0')*1000+(argv[3][1]-'0')*100+(argv[3][2]-'0')*10+(argv[3][3]-'0');
   month=(argv[3][4]-'0')*10+(argv[3][5]-'0');
   day=(argv[3][6]-'0')*10+(argv[3][7]-'0');
-  
+
   memset(&input_tm,0,sizeof(input_tm));
   input_tm.tm_year=year-1900;
   input_tm.tm_mon=month-1;
@@ -130,6 +132,7 @@ int main(int argc,char *argv[]){
     fprintf(stderr,"date conversion error\n");
     return 1;
   }
+
   day_index=(int)(input_time/86400);
   sheet_row=day_index-OFFSET;
   if(sheet_row<1){
@@ -138,7 +141,6 @@ int main(int argc,char *argv[]){
   }
 
   snprintf(date_text,sizeof(date_text),"%02d/%02d/%04d",day,month,year);
-  snprintf(gs_range,sizeof(gs_range),"%s!A%d:CS%d",SHEET_NAME,sheet_row,sheet_row);
 
   if(!read_access_token(google_access_token,sizeof(google_access_token))){
     fprintf(stderr,"google access token not found\n");
@@ -415,21 +417,24 @@ int main(int argc,char *argv[]){
     }
     one_price[j]=0;
 
-    if(count<96){
+    if(count<100){
       strcpy(price_values[count],one_price);
-      count++;
     }
+    count++;
 
     r=r+10;
   }
 
-  for(i=0;i<96;i++){
+  for(i=0;i<100;i++){
     sheet_values[i][0]=0;
   }
+
   if(count==96){
     for(i=0;i<96;i++){
       strcpy(sheet_values[i],price_values[i]);
     }
+    sheet_value_count=96;
+    strcpy(last_col,"CS");
   }
   else if(count==92){
     for(i=0;i<8;i++){
@@ -441,9 +446,25 @@ int main(int argc,char *argv[]){
     for(i=12;i<96;i++){
       strcpy(sheet_values[i],price_values[i-4]);
     }
+    sheet_value_count=96;
+    strcpy(last_col,"CS");
+  }
+  else if(count==100){
+    for(i=0;i<12;i++){
+      strcpy(sheet_values[i],price_values[i]);
+    }
+    for(i=12;i<96;i++){
+      strcpy(sheet_values[i],price_values[i+4]);
+    }
+    strcpy(sheet_values[96],price_values[12]);
+    strcpy(sheet_values[97],price_values[13]);
+    strcpy(sheet_values[98],price_values[14]);
+    strcpy(sheet_values[99],price_values[15]);
+    sheet_value_count=100;
+    strcpy(last_col,"CW");
   }
   else{
-    fprintf(stderr,"found %d prices, expected 92 or 96\n",count);
+    fprintf(stderr,"found %d prices, expected 92, 96 or 100\n",count);
     free(b64);
     free(zip_buf);
     free(file_buf);
@@ -456,6 +477,8 @@ int main(int argc,char *argv[]){
     return 1;
   }
 
+  snprintf(gs_range,sizeof(gs_range),"%s!A%d:%s%d",SHEET_NAME,sheet_row,last_col,sheet_row);
+
   gs_post[0]=0;
   strcat(gs_post,"{\"valueInputOption\":\"USER_ENTERED\",\"data\":[{\"range\":\"");
   strcat(gs_post,gs_range);
@@ -463,7 +486,7 @@ int main(int argc,char *argv[]){
   strcat(gs_post,date_text);
   strcat(gs_post,"\"");
 
-  for(i=0;i<96;i++){
+  for(i=0;i<sheet_value_count;i++){
     strcat(gs_post,",");
     if(sheet_values[i][0]==0){
       strcat(gs_post,"\"\"");
