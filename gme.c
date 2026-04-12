@@ -68,6 +68,7 @@ int main(int argc,char *argv[]){
   char gme_token[4096];
   char date_text[16];
   char price_values[96][64];
+  char sheet_values[96][64];
   char one_price[64];
   char *p;
   char *q;
@@ -422,8 +423,27 @@ int main(int argc,char *argv[]){
     r=r+10;
   }
 
-  if(count!=96){
-    fprintf(stderr,"found %d prices, expected 96\n",count);
+  for(i=0;i<96;i++){
+    sheet_values[i][0]=0;
+  }
+  if(count==96){
+    for(i=0;i<96;i++){
+      strcpy(sheet_values[i],price_values[i]);
+    }
+  }
+  else if(count==92){
+    for(i=0;i<8;i++){
+      strcpy(sheet_values[i],price_values[i]);
+    }
+    for(i=8;i<12;i++){
+      sheet_values[i][0]=0;
+    }
+    for(i=12;i<96;i++){
+      strcpy(sheet_values[i],price_values[i-4]);
+    }
+  }
+  else{
+    fprintf(stderr,"found %d prices, expected 92 or 96\n",count);
     free(b64);
     free(zip_buf);
     free(file_buf);
@@ -445,7 +465,12 @@ int main(int argc,char *argv[]){
 
   for(i=0;i<96;i++){
     strcat(gs_post,",");
-    strcat(gs_post,price_values[i]);
+    if(sheet_values[i][0]==0){
+      strcat(gs_post,"\"\"");
+    }
+    else{
+      strcat(gs_post,sheet_values[i]);
+    }
   }
 
   strcat(gs_post,"]]}]}");
