@@ -100,9 +100,7 @@ int main(int argc,char *argv[]){
   int count;
   int err;
   time_t input_time;
-  time_t epoch_time;
   struct tm input_tm;
-  struct tm epoch_tm;
 
   if(argc!=4){
     fprintf(stderr,"Usage: %s LOGIN PASSWORD YYYYMMDD\n",argv[0]);
@@ -117,7 +115,7 @@ int main(int argc,char *argv[]){
   year=(argv[3][0]-'0')*1000+(argv[3][1]-'0')*100+(argv[3][2]-'0')*10+(argv[3][3]-'0');
   month=(argv[3][4]-'0')*10+(argv[3][5]-'0');
   day=(argv[3][6]-'0')*10+(argv[3][7]-'0');
-
+  
   memset(&input_tm,0,sizeof(input_tm));
   input_tm.tm_year=year-1900;
   input_tm.tm_mon=month-1;
@@ -126,27 +124,13 @@ int main(int argc,char *argv[]){
   input_tm.tm_min=0;
   input_tm.tm_sec=0;
   input_tm.tm_isdst=-1;
-
-  memset(&epoch_tm,0,sizeof(epoch_tm));
-  epoch_tm.tm_year=70;
-  epoch_tm.tm_mon=0;
-  epoch_tm.tm_mday=1;
-  epoch_tm.tm_hour=12;
-  epoch_tm.tm_min=0;
-  epoch_tm.tm_sec=0;
-  epoch_tm.tm_isdst=-1;
-
   input_time=mktime(&input_tm);
-  epoch_time=mktime(&epoch_tm);
-
-  if(input_time==(time_t)-1||epoch_time==(time_t)-1){
+  if(input_time==(time_t)-1){
     fprintf(stderr,"date conversion error\n");
     return 1;
   }
-
-  day_index=(int)((input_time-epoch_time)/86400);
-  sheet_row=day_index-OFFSET;
-
+  day_index=(int)(input_time/86400);
+  sheet_row=day_index+OFFSET;
   if(sheet_row<1){
     fprintf(stderr,"invalid row %d\n",sheet_row);
     return 1;
