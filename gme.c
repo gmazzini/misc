@@ -130,7 +130,7 @@ int main(int argc,char *argv[]){
     return 1;
   }
   day_index=(int)(input_time/86400);
-  sheet_row=day_index+OFFSET;
+  sheet_row=day_index-OFFSET;
   if(sheet_row<1){
     fprintf(stderr,"invalid row %d\n",sheet_row);
     return 1;
