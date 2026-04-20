@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Informativa privacy</title>
+  <style>
+    :root{
+      --bg:#f5f7fb;
+      --card:#ffffff;
+      --line:#dbe3ef;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --link:#2563eb;
+      --shadow:0 10px 30px rgba(0,0,0,.06);
+    }
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font:16px/1.65 Arial, Helvetica, sans-serif;
+    }
+    .wrap{
+      max-width:920px;
+      margin:0 auto;
+      padding:28px 20px 48px;
+    }
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:22px;
+      box-shadow:var(--shadow);
+      margin-bottom:18px;
+    }
+    h1,h2{
+      line-height:1.25;
+      margin-top:0;
+    }
+    h1{
+      font-size:2rem;
+      margin-bottom:8px;
+    }
+    h2{
+      font-size:1.15rem;
+      margin-top:28px;
+      padding-top:12px;
+      border-top:1px solid var(--line);
+    }
+    p, li{
+      margin:0 0 12px;
+    }
+    ul{
+      padding-left:20px;
+    }
+    .muted{
+      color:var(--muted);
+    }
+    a{
+      color:var(--link);
+      text-decoration:none;
+    }
+    a:hover{
+      text-decoration:underline;
+    }
+    code{
+      background:#f3f4f6;
+      padding:0.1em 0.35em;
+      border-radius:6px;
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="card">
+      <h1>Informativa privacy</h1>
+      <p class="muted">Ultimo aggiornamento: 20 aprile 2026</p>
+      <p>
+        Questo servizio consente la creazione e gestione di link che reindirizzano
+        verso un URL di destinazione indicato dall’utente.
+      </p>
+      <p>
+        Il servizio è progettato per ridurre al minimo il trattamento dei dati personali:
+        non utilizza cookie di profilazione, non effettua analytics, non svolge tracking dei visitatori
+        e non conserva log dell’attività web dei visitatori del link.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>1. Titolare del trattamento</h2>
+      <p>
+        Titolare del trattamento è <strong>Gianluca Mazzini</strong>,
+        contattabile all’indirizzo e-mail
+        <a href="mailto:gianluca@mazzini.org">gianluca@mazzini.org</a>.
+      </p>
+      <p>
+        Il servizio è gestito a titolo personale, non commerciale e senza corrispettivo economico.
+      </p>
+
+      <h2>2. Categorie di interessati</h2>
+      <ul>
+        <li><strong>visitatori</strong> che cliccano un link e vengono reindirizzati;</li>
+        <li><strong>utenti autorizzati</strong> che possono creare o gestire i redirect.</li>
+      </ul>
+
+      <h2>3. Dati trattati per i visitatori dei link</h2>
+      <p>
+        Quando un visitatore clicca un link, il servizio effettua esclusivamente il reindirizzamento
+        verso l’URL associato.
+      </p>
+      <p>Per i visitatori non vengono conservati:</p>
+      <ul>
+        <li>indirizzi IP;</li>
+        <li>user agent;</li>
+        <li>referrer;</li>
+        <li>timestamp dei singoli click;</li>
+        <li>cookie o altri strumenti di profilazione o analytics;</li>
+        <li>log dell’attività web del visitatore.</li>
+      </ul>
+      <p>
+        Per ciascun link può essere mantenuto esclusivamente un <strong>contatore aggregato</strong>
+        del numero totale di redirect effettuati. Tale contatore non contiene dati identificativi dei visitatori
+        ed è visibile solo all’utente autorizzato che ha creato o gestisce il link.
+      </p>
+
+      <h2>4. Dati trattati per gli utenti autorizzati</h2>
+      <p>
+        Per consentire l’accesso al servizio e la gestione dei redirect possono essere trattati:
+      </p>
+      <ul>
+        <li>numero di telefono dell’utente autorizzato;</li>
+        <li>codice OTP generato per la verifica iniziale dell’accesso;</li>
+        <li>identificativo tecnico temporaneo di autenticazione (<code>tmpkey</code>);</li>
+        <li>timestamp tecnico di ultimo utilizzo e scadenza del token (<code>tmpepoch</code>);</li>
+        <li>origin del redirect, URL di destinazione, descrizione del link e contatore aggregato dei redirect.</li>
+      </ul>
+
+      <h2>5. Modalità di autenticazione</h2>
+      <p>
+        L’accesso al servizio è riservato a utenti previamente autorizzati dal titolare.
+        L’utente inserisce il proprio numero di telefono; il sistema genera un codice OTP;
+        l’utente deve poi inviare tale codice al numero di autenticazione indicato dal titolare
+        per completare la verifica iniziale.
+      </p>
+      <p>
+        In caso di verifica positiva, il sistema genera un identificativo tecnico temporaneo
+        (<code>tmpkey</code>) utilizzato per mantenere attiva l’autenticazione nel pannello di gestione.
+        Tale identificativo ha una durata limitata e scade dopo circa <strong>10 minuti dall’ultima azione</strong>,
+        salvo rinnovo automatico a ogni richiesta valida.
+      </p>
+      <p>
+        Il numero di telefono è trattato esclusivamente per verificare l’abilitazione dell’utente
+        e consentire l’autenticazione al servizio. Non viene utilizzato per finalità di marketing o profilazione.
+      </p>
+
+      <h2>6. Cookie, tracking e tecnologie simili</h2>
+      <p>
+        Il servizio non utilizza cookie di profilazione, analytics o strumenti di tracciamento del visitatore.
+      </p>
+      <p>
+        Per il pannello di gestione non viene utilizzato un cookie HTTP di sessione; l’accesso autenticato
+        è mantenuto mediante un identificativo tecnico temporaneo trasmesso nelle richieste del pannello
+        e usato esclusivamente per consentire il funzionamento del servizio richiesto dall’utente autorizzato.
+      </p>
+
+      <h2>7. Finalità del trattamento</h2>
+      <ul>
+        <li>erogare il servizio di creazione, memorizzazione tecnica e gestione dei redirect;</li>
+        <li>eseguire il reindirizzamento verso l’URL associato al link;</li>
+        <li>mostrare all’utente autorizzato il numero totale aggregato dei redirect effettuati;</li>
+        <li>verificare quali soggetti siano abilitati a utilizzare il servizio;</li>
+        <li>gestire l’autenticazione iniziale via OTP e il mantenimento tecnico dell’accesso al pannello;</li>
+        <li>adempiere a eventuali obblighi di legge o richieste dell’autorità competente.</li>
+      </ul>
+
+      <h2>8. Base giuridica</h2>
+      <ul>
+        <li>
+          <strong>Esecuzione del servizio richiesto dall’utente</strong>, per quanto necessario
+          all’autenticazione, alla creazione e gestione dei redirect e all’utilizzo del pannello.
+        </li>
+        <li>
+          <strong>Legittimo interesse del titolare</strong>, limitatamente alla selezione degli utenti ammessi,
+          alla prevenzione di usi abusivi e al funzionamento tecnico essenziale del servizio.
+        </li>
+        <li>
+          <strong>Adempimento di obblighi di legge</strong>, ove applicabile.
+        </li>
+      </ul>
+
+      <h2>9. Natura del conferimento</h2>
+      <p>
+        Il conferimento del numero di telefono e dei dati necessari all’autenticazione
+        è necessario per essere ammessi al servizio e poter creare o gestire redirect.
+        In mancanza, il servizio non può essere erogato.
+      </p>
+
+      <h2>10. Conservazione dei dati</h2>
+      <ul>
+        <li>
+          I numeri di telefono degli utenti autorizzati sono conservati finché l’utente resta abilitato
+          a utilizzare il servizio oppure fino a richiesta di cancellazione, salvo obblighi di legge.
+        </li>
+        <li>
+          Il token tecnico temporaneo <code>tmpkey</code> e il relativo <code>tmpepoch</code>
+          sono conservati solo per il tempo necessario al mantenimento dell’accesso tecnico
+          e vengono sovrascritti o cessano di essere validi alla scadenza.
+        </li>
+        <li>
+          I dati relativi ai redirect creati sono conservati fino alla cancellazione del redirect
+          o fino alla cessazione del servizio, salvo obblighi di legge.
+        </li>
+        <li>
+          Il contatore aggregato dei redirect è conservato finché il redirect resta attivo
+          o fino alla sua cancellazione.
+        </li>
+        <li>
+          Non vengono conservati log dell’attività web dei visitatori dei link.
+        </li>
+      </ul>
+
+      <h2>11. Destinatari dei dati</h2>
+      <p>
+        I dati possono essere trattati da fornitori tecnici strettamente necessari al funzionamento del servizio,
+        quali hosting provider, fornitori di infrastruttura o fornitori di servizi di telecomunicazione,
+        nei limiti in cui ciò sia necessario all’erogazione tecnica del servizio o del canale di autenticazione.
+      </p>
+
+      <h2>12. Trasferimenti di dati</h2>
+      <p>
+        Eventuali trasferimenti di dati verso Paesi extra UE avverranno, se del caso,
+        nel rispetto della normativa applicabile e mediante strumenti di garanzia adeguati.
+      </p>
+
+      <h2>13. Diritti dell’interessato</h2>
+      <p>
+        Nei casi previsti dalla normativa applicabile, l’interessato può esercitare i diritti di accesso,
+        rettifica, cancellazione, limitazione del trattamento, opposizione e portabilità dei dati,
+        nonché proporre reclamo all’autorità di controllo competente.
+      </p>
+      <p>
+        Per esercitare i propri diritti è possibile scrivere a
+        <a href="mailto:gianluca@mazzini.org">gianluca@mazzini.org</a>.
+      </p>
+
+      <h2>14. Responsabilità dell’utente sui redirect inseriti</h2>
+      <p>
+        L’utente autorizzato che crea un redirect è responsabile del dominio o URL di destinazione inserito
+        e garantisce di avere titolo a pubblicarlo o condividerlo tramite il servizio.
+        È vietato inserire URL contenenti dati personali non autorizzati, credenziali,
+        token di accesso, informazioni riservate o contenuti illeciti.
+      </p>
+      <p>
+        Il titolare si riserva la facoltà di sospendere o rimuovere redirect che risultino
+        manifestamente illeciti, abusivi o contrari alla presente informativa o alle regole del servizio.
+      </p>
+
+      <h2>15. Modifiche all’informativa</h2>
+      <p>
+        La presente informativa può essere aggiornata nel tempo.
+        La versione aggiornata sarà resa disponibile su questa pagina con indicazione della data di ultimo aggiornamento.
+      </p>
+    </div>
+  </main>
+</body>
+</html>
