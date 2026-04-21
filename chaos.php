@@ -6,6 +6,7 @@ mysqli_set_charset($con,'utf8mb4');
 if(!$con) die("Errore DB");
 
 $timeout=600; // 10 minuti
+$loginUrl="https://www.chaos.cc";
 $cell="";
 $tmpkey="";
 $authed=0;
@@ -89,7 +90,6 @@ if($authed==0 && !empty($_POST['cell'])){
     } else {
       $otp=sprintf("%05d",rand(0,99999));
       $epoch=time();
-      $look=0;
 
       echo "<!doctype html><html lang='it'><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1'><title>OTP</title>
       <style>
@@ -107,18 +107,24 @@ if($authed==0 && !empty($_POST['cell'])){
         if(!e) return;
         e.textContent=sec;
         if(sec<=0){
-          window.location='prova.php';
+          window.location='".h($loginUrl)."';
           return;
         }
         sec--;
         setTimeout(tick,1000);
       }
       </script>
-      </head><body onload='tick()'>";
+      </head><body>";
 
       echo "<div class='otpbox'><div id='otpbox'>Utente <b>".h($cell)."</b><br><br>Invia via SMS il codice <b>".h($otp)."</b> al numero di autenticazione <b>3294296486</b> entro <span id='countdown'>90</span> secondi</div><div class='note'>Usando questo servizio dichiari di aver preso visione dell’<a href='https://www.chaos.cc/privacy.html' target='_blank'>informativa privacy</a>.</div></div>";
+
+      echo str_repeat(" ", 4096);
       @ob_flush(); @flush();
 
+      echo "<script>tick();</script>";
+      @ob_flush(); @flush();
+
+      $look=0;
       for($i=0;$i<90 && $look==0;$i++){
         $fp=@fopen("/home/www/data/sms/39".$cell,"r");
         if($fp!==false){
@@ -135,14 +141,13 @@ if($authed==0 && !empty($_POST['cell'])){
 
       if($look==1){
         echo "<script>document.getElementById('otpbox').innerHTML='Autenticazione riuscita';</script>";
-        $tmpkey=bin2hex(random_bytes(16)); // 32 char hex
+        $tmpkey=bin2hex(random_bytes(16));
         $tmpkeyesc=mysqli_real_escape_string($con,$tmpkey);
         mysqli_query($con,"UPDATE auth_redirect SET tmpkey='$tmpkeyesc', tmpepoch=".time()." WHERE cell='$cellesc' LIMIT 1");
         $authed=1;
         $msg="<span class='msg success'>Autenticazione riuscita</span>";
       } else {
-        echo "<script>document.getElementById('otpbox').innerHTML='<span style=\"color:#b91c1c;font-weight:bold;\">OTP scaduto</span>';</script>";
-        echo "<script>setTimeout(function(){ window.location='prova.php'; }, 1200);</script>";
+        echo "<script>document.getElementById('otpbox').innerHTML='<span style=\"color:#b91c1c;font-weight:bold;\">OTP scaduto</span>'; setTimeout(function(){ window.location='".h($loginUrl)."'; },1200);</script>";
         echo "</body></html>";
         mysqli_close($con);
         exit;
@@ -387,7 +392,11 @@ echo "</div>";
 
 if(!$authed){
   echo "<div class='card'>";
-  echo "<div class='meta'>Usando questo servizio dichiari di aver preso visione dell’<a href='https://www.chaos.cc/privacy.html' target='_blank'>informativa privacy</a>.</div><br>";
+  echo "<h2>Accesso al servizio</h2>";
+  echo "<p>Questo servizio consente di creare e gestire redirect personalizzati verso URL di destinazione.</p>";
+  echo "<p>L’uso è gratuito ma riservato a utenti previamente abilitati.</p>";
+  echo "<p>Prima di usare il servizio, leggi l’<a href='https://www.chaos.cc/privacy.html' target='_blank'>informativa privacy</a>.</p>";
+  echo "<p>Se desideri essere abilitato gratuitamente al sistema, scrivi a <a href='mailto:gianluca@mazzini.org'>gianluca@mazzini.org</a>.</p><br>";
   echo '<form method="post">
   <label>Cellulare</label><br>
   <input type="text" name="cell" required>
