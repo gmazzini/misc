@@ -63,7 +63,11 @@ if(!empty($_POST['tmpkey'])){
       $authed=1;
       $cell=$r["cell"];
       mysqli_query($con,"UPDATE auth_redirect SET tmpepoch=".time()." WHERE tmpkey='$tmpkeyesc' LIMIT 1");
+    } else {
+      $msg="<span class='msg error'>Sessione scaduta, rifare autenticazione</span>";
     }
+  } else {
+    $msg="<span class='msg error'>Sessione non valida, rifare autenticazione</span>";
   }
 }
 
@@ -83,28 +87,45 @@ if($authed==0 && !empty($_POST['cell'])){
     if($r==null){
       $msg="<span class='msg error'>Numero non autorizzato</span>";
     } else {
+      $otp=sprintf("%05d",rand(0,99999));
+      $epoch=time();
+      $look=0;
+
       echo "<!doctype html><html lang='it'><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1'><title>OTP</title>
       <style>
       body{font-family:Arial,sans-serif;margin:30px;background:#f5f7fb;color:#1f2937}
       .otpbox{max-width:700px;margin:auto;background:#fff;border:1px solid #dbe3ef;border-radius:14px;padding:24px;box-shadow:0 8px 24px rgba(0,0,0,.06)}
       .note{margin-top:14px;color:#6b7280;font-size:14px}
+      .count{margin-top:14px;font-size:18px;font-weight:bold;color:#2563eb}
       a{color:#2563eb;text-decoration:none}
       a:hover{text-decoration:underline}
       </style>
-      </head><body>";
-      $otp=sprintf("%05d",rand(0,99999));
-      echo "<div class='otpbox'><div id='otpbox'>Utente <b>".h($cell)."</b><br><br>Invia via whatsapp il codice <b>".h($otp)."</b> al numero di autenticazione <b>3770867586</b> entro 90 secondi</div><div class='note'>Usando questo servizio dichiari di aver preso visione dell’<a href='https://www.chaos.cc/privacy.html' target='_blank'>informativa privacy</a>.</div></div>";
-      ob_flush(); flush();
+      <script>
+      let sec=90;
+      function tick(){
+        let e=document.getElementById('countdown');
+        if(!e) return;
+        e.textContent=sec;
+        if(sec<=0){
+          window.location='prova.php';
+          return;
+        }
+        sec--;
+        setTimeout(tick,1000);
+      }
+      </script>
+      </head><body onload='tick()'>";
 
-      $epoch=time();
-      $look=0;
+      echo "<div class='otpbox'><div id='otpbox'>Utente <b>".h($cell)."</b><br><br>Invia via SMS il codice <b>".h($otp)."</b> al numero di autenticazione <b>3294296486</b> entro <span id='countdown'>90</span> secondi</div><div class='note'>Usando questo servizio dichiari di aver preso visione dell’<a href='https://www.chaos.cc/privacy.html' target='_blank'>informativa privacy</a>.</div></div>";
+      @ob_flush(); @flush();
+
       for($i=0;$i<90 && $look==0;$i++){
-        $fp=@fopen("/home/www/data/auth/39".$cell,"r");
+        $fp=@fopen("/home/www/data/sms/39".$cell,"r");
         if($fp!==false){
           $line=fgets($fp);
           fclose($fp);
           $vv=explode(",",$line);
-          if(trim($vv[0])==$otp && $epoch-(int)$vv[1]<90){
+          if(count($vv)>=2 && trim($vv[0])==$otp && $epoch-(int)$vv[1]<90){
             $look=1;
             break;
           }
@@ -121,6 +142,7 @@ if($authed==0 && !empty($_POST['cell'])){
         $msg="<span class='msg success'>Autenticazione riuscita</span>";
       } else {
         echo "<script>document.getElementById('otpbox').innerHTML='<span style=\"color:#b91c1c;font-weight:bold;\">OTP scaduto</span>';</script>";
+        echo "<script>setTimeout(function(){ window.location='prova.php'; }, 1200);</script>";
         echo "</body></html>";
         mysqli_close($con);
         exit;
