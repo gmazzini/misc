@@ -4,15 +4,17 @@ CPPFLAGS ?=
 LDFLAGS ?=
 LDLIBS ?=
 
-TARGET = runtelnet
-SRC = runtelnet.c
+TARGETS = runtelnet file
 
-all: $(TARGET)
+all: $(TARGETS)
 
-$(TARGET): $(SRC)
-	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ $(SRC) $(LDFLAGS) $(LDLIBS)
+runtelnet: runtelnet.c
+	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ $< $(LDFLAGS) $(LDLIBS)
+
+file: file.c
+	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ $< $(LDFLAGS) $(LDLIBS)
 
 clean:
-	rm -f $(TARGET)
+	rm -f $(TARGETS)
 
 .PHONY: all clean
