@@ -4,7 +4,7 @@ CPPFLAGS ?=
 LDFLAGS ?=
 LDLIBS ?=
 
-TARGETS = runtelnet file
+TARGETS = runtelnet file photo
 
 all: $(TARGETS)
 
@@ -13,6 +13,9 @@ runtelnet: runtelnet.c
 
 file: file.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ $< $(LDFLAGS) $(LDLIBS)
+
+photo: photo.c
+	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ $< $(LDFLAGS) $(LDLIBS) -lsqlite3
 
 clean:
 	rm -f $(TARGETS)
