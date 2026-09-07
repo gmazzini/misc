@@ -4,7 +4,7 @@ CPPFLAGS ?=
 LDFLAGS ?=
 LDLIBS ?=
 
-TARGETS = runtelnet file photo
+TARGETS = runtelnet file photo redirect smsauth
 
 all: $(TARGETS)
 
@@ -16,6 +16,12 @@ file: file.c
 
 photo: photo.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ $< $(LDFLAGS) $(LDLIBS) -lsqlite3
+
+redirect: redirect.c
+	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ $< $(LDFLAGS) $(LDLIBS) -lsqlite3 -lcurl -lcrypto
+
+smsauth: smsauth.c
+	$(CC) $(CPPFLAGS) $(CFLAGS) -o $@ $< $(LDFLAGS) $(LDLIBS) -lsqlite3 -lcurl -lcrypto
 
 clean:
 	rm -f $(TARGETS)
